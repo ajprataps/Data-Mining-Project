@@ -1,0 +1,209 @@
+> df <- read.csv("/Users/nitinfern/Downloads/Data Mining/Project 2/imdb_top_1000.csv")
+> summary(df)
+ Poster_Link        Series_Title       Released_Year      Certificate          Runtime         
+ Length:1000        Length:1000        Length:1000        Length:1000        Length:1000       
+ Class :character   Class :character   Class :character   Class :character   Class :character  
+ Mode  :character   Mode  :character   Mode  :character   Mode  :character   Mode  :character  
+                                                                                               
+                                                                                               
+                                                                                               
+                                                                                               
+    Genre            IMDB_Rating      Overview           Meta_score       Director        
+ Length:1000        Min.   :7.600   Length:1000        Min.   : 28.00   Length:1000       
+ Class :character   1st Qu.:7.700   Class :character   1st Qu.: 70.00   Class :character  
+ Mode  :character   Median :7.900   Mode  :character   Median : 79.00   Mode  :character  
+                    Mean   :7.949                      Mean   : 77.97                     
+                    3rd Qu.:8.100                      3rd Qu.: 87.00                     
+                    Max.   :9.300                      Max.   :100.00                     
+                                                       NA's   :157                        
+    Star1              Star2              Star3              Star4            No_of_Votes     
+ Length:1000        Length:1000        Length:1000        Length:1000        Min.   :  25088  
+ Class :character   Class :character   Class :character   Class :character   1st Qu.:  55526  
+ Mode  :character   Mode  :character   Mode  :character   Mode  :character   Median : 138548  
+                                                                             Mean   : 273693  
+                                                                             3rd Qu.: 374161  
+                                                                             Max.   :2343110  
+                                                                                              
+    Gross          
+ Length:1000       
+ Class :character  
+ Mode  :character  
+                   
+                   
+                   
+                   
+> df$Gross <- gsub(",","",as.character(df$Gross))
+> df$Gross <- as.numeric(as.character(df$Gross))
+> df$Runtime <- gsub(" min","",as.character(df$Runtime))
+> df$Runtime <- as.numeric(as.character(df$Runtime))
+> df$Released_Year <- as.numeric(as.character(df$Released_Year))
+Warning message:
+NAs introduced by coercion 
+> 
+> install.packages("visdat")
+trying URL 'https://cloud.r-project.org/bin/macosx/contrib/4.1/visdat_0.5.3.tgz'
+Content type 'application/x-gzip' length 1093592 bytes (1.0 MB)
+==================================================
+downloaded 1.0 MB
+
+
+The downloaded binary packages are in
+	/var/folders/x9/4377r75x64l0vl8ngrvq9f1h0000gn/T//Rtmp9ZeLy3/downloaded_packages
+> library(visdat)
+> 
+> vis_miss(df)
+> df <- na.omit(df)
+> 
+> install.packages('plyr')
+trying URL 'https://cloud.r-project.org/bin/macosx/contrib/4.1/plyr_1.8.7.tgz'
+Content type 'application/x-gzip' length 1016408 bytes (992 KB)
+==================================================
+downloaded 992 KB
+
+
+The downloaded binary packages are in
+	/var/folders/x9/4377r75x64l0vl8ngrvq9f1h0000gn/T//Rtmp9ZeLy3/downloaded_packages
+> library(plyr)
+> 
+> count(df,"Runtime")
+  "Runtime"   n
+1   Runtime 749
+> Median_Gross <- median(df$Gross)
+> Median_Gross
+[1] 31800000
+> 
+> boxplot(df$IMDB_Rating, main="IMDB_Rating Boxplot",ylab="IMDB_Rating")
+> boxplot(df$Meta_score, main="Meta_score Boxplot",ylab="Meta_score")
+> boxplot(df$Runtime, main="Runtime Boxplot",ylab="Runtime")
+> boxplot(df$No_of_Votes, main="No_of_Votes Boxplot",ylab="No_of_Votes")
+> boxplot(df$Released_Year, main="Released_Year Boxplot",ylab="Released_Year")
+> boxplot(df$Gross, main="Gross Boxplot",ylab="Gross")
+> 
+> 
+> normalize <- function(x, na.rm = TRUE) {
++     return((x- min(x)) /(max(x)-min(x)))
++ }
+> 
+> df$Gross <- normalize(df$Gross)
+> df$IMDB_Rating <- normalize(df$IMDB_Rating)
+> df$Meta_score <- normalize(df$Meta_score)
+> df$Runtime <- normalize(df$Runtime)
+> df$No_of_Votes <- normalize(df$No_of_Votes)
+> df$Released_Year <- normalize(df$Released_Year)
+> 
+> df1 <- df[,c("Runtime", "IMDB_Rating", "Meta_score", "Released_Year", "No_of_Votes", "Gross")]
+> 
+> x <- df1[1:5]
+> y <- df1[6]
+> cor(x, y, method= 'pearson') 
+                    Gross
+Runtime        0.17222646
+IMDB_Rating    0.12937777
+Meta_score    -0.03055968
+Released_Year  0.23595150
+No_of_Votes    0.55600264
+> 
+> df1 <- df1[,c("Runtime", "IMDB_Rating", "Released_Year", "No_of_Votes", "Gross")]
+> 
+> x <- df1[1:4]
+> y <- df1[5]
+> cor(x, y, method= 'pearson')
+                  Gross
+Runtime       0.1722265
+IMDB_Rating   0.1293778
+Released_Year 0.2359515
+No_of_Votes   0.5560026
+> 
+> install.packages("dplyr")
+trying URL 'https://cloud.r-project.org/bin/macosx/contrib/4.1/dplyr_1.0.8.tgz'
+Content type 'application/x-gzip' length 1295740 bytes (1.2 MB)
+==================================================
+downloaded 1.2 MB
+
+
+The downloaded binary packages are in
+	/var/folders/x9/4377r75x64l0vl8ngrvq9f1h0000gn/T//Rtmp9ZeLy3/downloaded_packages
+> library(dplyr)
+> 
+> Median_Gross <- median(df1$Gross)
+> Median_Gross
+[1] 0.03394899
+> 
+> df1 <- df1 %>%
++ mutate(Gross = ifelse(Gross < Median_Gross,
++ "0","1"))
+> 
+> df1$Gross = factor(df1$Gross)
+> 
+> plot <- table(df1$Gross)
+> 
+> barplot(plot, main="Gross Revenue", xlab="0 - Below Median, 1 - Equal To or Above Median", ylab="Gross")
+> 
+> df1 <- df1[,c("Runtime", "IMDB_Rating", "Released_Year", "No_of_Votes", "Gross")]
+> 
+> x <- df1[,c("Runtime", "IMDB_Rating", "Released_Year", "No_of_Votes")]
+> 
+> set.seed(123)
+> train <- sample(1:nrow(df1), 0.75 * nrow(df1)) 
+> df1_train <- x[train,] 
+> df1_test <- x[-train,]
+> target <- df1[train,5]
+> target_test <- df1[-train,5]
+> 
+> library(class)
+> knn_model <- knn(df1_train, df1_test,cl=target,k=29)
+> 
+> confusedmatrix <- table(knn_model, target_test)
+> confusedmatrix
+         target_test
+knn_model  0  1
+        0 77 24
+        1 21 66
+> 
+> accuracy <- (66+77)/(66+77+21+24)
+> accuracy
+[1] 0.7606383
+> recall <- 66/(66+21)
+> recall
+[1] 0.7586207
+> precision <- 66/(66+24)
+> precision
+[1] 0.7333333
+> 
+> 
+> install.packages('adabag')
+trying URL 'https://cloud.r-project.org/bin/macosx/contrib/4.1/adabag_4.2.tgz'
+Content type 'application/x-gzip' length 120331 bytes (117 KB)
+==================================================
+downloaded 117 KB
+
+
+The downloaded binary packages are in
+	/var/folders/x9/4377r75x64l0vl8ngrvq9f1h0000gn/T//Rtmp9ZeLy3/downloaded_packages
+> library('caret')
+> library(adabag)
+> library(caret)
+> 
+> set.seed(123)
+> indexes=createDataPartition(df1$Gross, p=.75, list = F)
+> df1_train <- df1[indexes, ]
+> df1_test = df1[-indexes, ]
+> 
+> adb_model <- boosting(Gross~., data=df1_train, boos=TRUE, mfinal=10)
+> result = predict(adb_model, df1_test)
+> print(result$confusion)
+               Observed Class
+Predicted Class  0  1
+              0 78 14
+              1 15 79
+> 
+> accuracy <- (78+79)/(78+79+15+14)
+> accuracy
+[1] 0.844086
+> recall <- 79/(79+14)
+> recall
+[1] 0.8494624
+> precision <- 79/(79+15)
+> precision
+[1] 0.8404255
+> 
